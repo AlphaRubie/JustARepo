@@ -22,7 +22,7 @@ jobs:
         username: ${{ github.actor }} # Gebruik de GitHub actor voor authenticatie
         password: ${{ secrets.GITHUB_TOKEN }} # Gebruik de GitHub token voor authenticatie
 
-    - name: Build and tag the Docker image
+    - name: Build and tag the Docker image #Build the image
       run: |
         IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/my-nginx-image
         docker build -t $IMAGE_NAME:latest . # Bouw de Docker image en tag deze met 'latest'
