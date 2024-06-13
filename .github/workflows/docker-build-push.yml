@@ -20,7 +20,7 @@ jobs:
       uses: docker/login-action@v2 # Gebruik de Docker login actie om in te loggen bij GitHub Container Registry
       with:
         username: ${{ github.actor }} # Gebruik de GitHub actor voor authenticatie
-        password: ${{ secrets.GITHUB_TOKEN }} # Gebruik de GitHub token voor authenticatie
+        password: ${{ secrets.GH_TOKEN }} # Gebruik de GitHub token voor authenticatie
 
     - name: Build and tag the Docker image
       run: |
