@@ -25,12 +25,12 @@ jobs:
 
     - name: Build and tag the Docker image
       run: |
-        IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/my-nginx-image
+        IMAGE_NAME=ghcr.io/alpharubie/my-nginx-image
         docker build -t $IMAGE_NAME:latest . # Bouw de Docker image en tag deze met 'latest'
         docker tag $IMAGE_NAME:latest $IMAGE_NAME:${{ github.sha }} # Tag de gebouwde image met de huidige GitHub commit SHA
 
     - name: Push the Docker image
       run: |
-        IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/my-nginx-image
+        IMAGE_NAME=ghcr.io/alpharubie/my-nginx-image
         docker push $IMAGE_NAME:latest # Push de Docker image getagd met 'latest' naar GitHub Container Registry
         docker push $IMAGE_NAME:${{ github.sha }} # Push de Docker image getagd met de GitHub commit SHA naar GitHub Container Registry
