@@ -23,14 +23,30 @@ jobs:
         username: ${{ github.actor }} # Gebruik de GitHub actor voor authenticatie
         password: ${{ secrets.GH_TOKEN }} # Gebruik de GitHub token voor authenticatie
 
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2 # Gebruik de Docker login actie om in te loggen bij Docker Hub
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }} # Docker Hub gebruikersnaam
+        password: ${{ secrets.DOCKER_PASSWORD }} # Docker Hub wachtwoord
+
     - name: Build and tag the Docker image
       run: |
-        IMAGE_NAME=ghcr.io/alpharubie/my-nginx-image
-        docker build -t $IMAGE_NAME:latest . # Bouw de Docker image en tag deze met 'latest'
-        docker tag $IMAGE_NAME:latest $IMAGE_NAME:${{ github.sha }} # Tag de gebouwde image met de huidige GitHub commit SHA
+        IMAGE_NAME_GHCR=ghcr.io/alpharubie/my-nginx-image
+        IMAGE_NAME_DOCKERHUB=dockerhubuser/my-nginx-image
 
-    - name: Push the Docker image
+        # Bouw en tag de Docker image
+        docker build -t $IMAGE_NAME_GHCR:latest -t $IMAGE_NAME_DOCKERHUB:latest .
+        docker tag $IMAGE_NAME_GHCR:latest $IMAGE_NAME_GHCR:${{ github.sha }}
+        docker tag $IMAGE_NAME_DOCKERHUB:latest $IMAGE_NAME_DOCKERHUB:${{ github.sha }}
+
+    - name: Push the Docker image to GitHub Container Registry
       run: |
-        IMAGE_NAME=ghcr.io/alpharubie/my-nginx-image
-        docker push $IMAGE_NAME:latest # Push de Docker image getagd met 'latest' naar GitHub Container Registry
-        docker push $IMAGE_NAME:${{ github.sha }} # Push de Docker image getagd met de GitHub commit SHA naar GitHub Container Registry
+        IMAGE_NAME_GHCR=ghcr.io/alpharubie/my-nginx-image
+        docker push $IMAGE_NAME_GHCR:latest
+        docker push $IMAGE_NAME_GHCR:${{ github.sha }}
+
+    - name: Push the Docker image to Docker Hub
+      run: |
+        IMAGE_NAME_DOCKERHUB=dockerhubuser/my-nginx-image
+        docker push $IMAGE_NAME_DOCKERHUB:latest
+        docker push $IMAGE_NAME_DOCKERHUB:${{ github.sha }}
