@@ -1,40 +1,40 @@
-name: Build and Push Docker Image # Naam van de GitHub Action workflow #
+name: Build, Push, and Deploy Docker Image
 
 on:
   push:
     branches:
-      - main # Start de workflow bij pushes naar de 'main' branch
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest # Gebruik de laatste versie van Ubuntu voor de job runner
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3 # Stap om de code van de repository te klonen
+      uses: actions/checkout@v3
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2 # Stel Docker Buildx in, wat handig is voor het bouwen van multi-platform images
+      uses: docker/setup-buildx-action@v2
 
     - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v2 # Gebruik de Docker login actie om in te loggen bij GitHub Container Registry
+      uses: docker/login-action@v2
       with:
         registry: ghcr.io
-        username: ${{ github.actor }} # Gebruik de GitHub actor voor authenticatie
-        password: ${{ secrets.GH_TOKEN }} # Gebruik de GitHub token voor authenticatie
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
 
     - name: Log in to Docker Hub
-      uses: docker/login-action@v2 # Gebruik de Docker login actie om in te loggen bij Docker Hub
+      uses: docker/login-action@v2
       with:
-        username: ${{ secrets.DOCKER_USERNAME }} # Docker Hub gebruikersnaam
-        password: ${{ secrets.DOCKER_PASSWORD }} # Docker Hub wachtwoord
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: Build and tag the Docker image
       run: |
         IMAGE_NAME_GHCR=ghcr.io/alpharubie/my-nginx-image
-        IMAGE_NAME_DOCKERHUB=alpharubie/my-nginx-image
+        IMAGE_NAME_DOCKERHUB=dockerhubuser/my-nginx-image
 
-        # Bouw en tag de Docker image
+        # Build and tag the Docker image
         docker build -t $IMAGE_NAME_GHCR:latest -t $IMAGE_NAME_DOCKERHUB:latest .
         docker tag $IMAGE_NAME_GHCR:latest $IMAGE_NAME_GHCR:${{ github.sha }}
         docker tag $IMAGE_NAME_DOCKERHUB:latest $IMAGE_NAME_DOCKERHUB:${{ github.sha }}
@@ -47,6 +47,38 @@ jobs:
 
     - name: Push the Docker image to Docker Hub
       run: |
-        IMAGE_NAME_DOCKERHUB=alpharubie/my-nginx-image
+        IMAGE_NAME_DOCKERHUB=dockerhubuser/my-nginx-image
         docker push $IMAGE_NAME_DOCKERHUB:latest
         docker push $IMAGE_NAME_DOCKERHUB:${{ github.sha }}
+
+  deploy:
+    needs: build  # Ensure deploy runs after build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Deploy to server
+      run: |
+        IMAGE_NAME_DOCKERHUB=dockerhubuser/my-nginx-image
+
+        # SSH into the server and deploy the new Docker image
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SERVER_IP }} << 'EOF'
+          # Pull the latest Docker image
+          docker pull $IMAGE_NAME_DOCKERHUB:latest
+
+          # Stop the currently running container (if any)
+          docker stop my-nginx-container || true
+
+          # Remove the stopped container
+          docker rm my-nginx-container || true
+
+          # Run a new container with the latest image
+          docker run -d --name my-nginx-container -p 80:80 $IMAGE_NAME_DOCKERHUB:latest
+        EOF
