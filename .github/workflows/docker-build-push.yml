@@ -1,4 +1,4 @@
-name: Build and Push Docker Image # Naam van de GitHub Action workflow
+name: Build and Push Docker Image # Naam van de GitHub Action workflow #
 
 on:
   push:
