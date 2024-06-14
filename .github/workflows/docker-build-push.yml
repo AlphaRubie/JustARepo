@@ -56,8 +56,8 @@ jobs:
         docker push $IMAGE_NAME_DOCKERHUB:$COMMIT_SHA
 
   deploy:
-    needs: self-hosted
-    runs-on: ubuntu-latest  # Ensure this matches the server configuration
+    needs: build
+    runs-on: self-hosted  # Ensure this matches the server configuration
 
     steps:
     - name: Checkout repository
