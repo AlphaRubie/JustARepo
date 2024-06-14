@@ -32,7 +32,7 @@ jobs:
     - name: Build and tag the Docker image
       run: |
         IMAGE_NAME_GHCR=ghcr.io/alpharubie/my-nginx-image
-        IMAGE_NAME_DOCKERHUB=dockerhubuser/my-nginx-image
+        IMAGE_NAME_DOCKERHUB=alpharubie/my-nginx-image
 
         # Build and tag the Docker image
         docker build -t $IMAGE_NAME_GHCR:latest -t $IMAGE_NAME_DOCKERHUB:latest .
@@ -47,7 +47,7 @@ jobs:
 
     - name: Push the Docker image to Docker Hub
       run: |
-        IMAGE_NAME_DOCKERHUB=dockerhubuser/my-nginx-image
+        IMAGE_NAME_DOCKERHUB=alpharubie/my-nginx-image
         docker push $IMAGE_NAME_DOCKERHUB:latest
         docker push $IMAGE_NAME_DOCKERHUB:${{ github.sha }}
 
@@ -72,7 +72,7 @@ jobs:
 
     - name: Deploy to server
       run: |
-        IMAGE_NAME_DOCKERHUB=dockerhubuser/my-nginx-image
+        IMAGE_NAME_DOCKERHUB=alpharubie/my-nginx-image
 
         ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SERVER_IP }} << 'EOF'
           docker pull $IMAGE_NAME_DOCKERHUB:latest
