@@ -33,23 +33,27 @@ jobs:
       run: |
         IMAGE_NAME_GHCR=ghcr.io/alpharubie/my-nginx-image
         IMAGE_NAME_DOCKERHUB=alpharubie/my-nginx-image
+        COMMIT_SHA=${{ github.sha }}
 
-        # Build and tag the Docker image
-        docker build -t $IMAGE_NAME_GHCR:latest -t $IMAGE_NAME_DOCKERHUB:latest .
-        docker tag $IMAGE_NAME_GHCR:latest $IMAGE_NAME_GHCR:${{ github.sha }}
-        docker tag $IMAGE_NAME_DOCKERHUB:latest $IMAGE_NAME_DOCKERHUB:${{ github.sha }}
+        # Build and tag the Docker image with 'latest' and commit SHA
+        docker build -t $IMAGE_NAME_GHCR:latest -t $IMAGE_NAME_GHCR:$COMMIT_SHA .
+        docker build -t $IMAGE_NAME_DOCKERHUB:latest -t $IMAGE_NAME_DOCKERHUB:$COMMIT_SHA .
 
     - name: Push the Docker image to GitHub Container Registry
       run: |
         IMAGE_NAME_GHCR=ghcr.io/alpharubie/my-nginx-image
+        COMMIT_SHA=${{ github.sha }}
+        
         docker push $IMAGE_NAME_GHCR:latest
-        docker push $IMAGE_NAME_GHCR:${{ github.sha }}
+        docker push $IMAGE_NAME_GHCR:$COMMIT_SHA
 
     - name: Push the Docker image to Docker Hub
       run: |
         IMAGE_NAME_DOCKERHUB=alpharubie/my-nginx-image
+        COMMIT_SHA=${{ github.sha }}
+
         docker push $IMAGE_NAME_DOCKERHUB:latest
-        docker push $IMAGE_NAME_DOCKERHUB:${{ github.sha }}
+        docker push $IMAGE_NAME_DOCKERHUB:$COMMIT_SHA
 
   deploy:
     needs: build
@@ -68,8 +72,9 @@ jobs:
     - name: Deploy to server
       run: |
         IMAGE_NAME_DOCKERHUB=alpharubie/my-nginx-image
+        COMMIT_SHA=${{ github.sha }}
 
-        docker pull $IMAGE_NAME_DOCKERHUB:latest
+        docker pull $IMAGE_NAME_DOCKERHUB:$COMMIT_SHA
         docker stop my-nginx-container || true
         docker rm my-nginx-container || true
-        docker run -d --name my-nginx-container -p 80:80 $IMAGE_NAME_DOCKERHUB:latest
+        docker run -d --name my-nginx-container -p 80:80 $IMAGE_NAME_DOCKERHUB:$COMMIT_SHA
